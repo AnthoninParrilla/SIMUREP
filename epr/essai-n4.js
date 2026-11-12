@@ -334,8 +334,10 @@
       // même ligne inconnue que les courbes (même seuil, noté par snapshot), sinon l'enregistreur du 1300 la relierait par une droite.
       const enrTrous=[];
       function enrTrouer(rows,n,pas){while(enrTrous.length&&rows.length&&enrTrous[0].b<rows[0].t)enrTrous.shift();if(!enrTrous.length)return rows;const R=rows.slice(),vu=r=>Array.isArray(r.v)&&r.v.some(x=>x!==null);
-        // entre le dernier relevé d'avant l'absence (j) et le premier d'après (i), une ligne inconnue au milieu, à son rang, si l'écart dépasse deux pas
-        for(const {a} of enrTrous){const i=R.findIndex(r=>vu(r)&&r.t>a);let j=i-1;while(j>=0&&!vu(R[j]))j--;if(i<1||j<0||R[i].t-R[j].t<=2*pas||R.slice(j+1,i).some(r=>Array.isArray(r.v)&&!vu(r)))continue;
+        // entre le dernier relevé d'avant l'absence (j) et le premier d'après (i), une ligne inconnue au milieu, à son rang, si l'écart dépasse deux pas.
+        // « D'après » se lit au milieu de l'absence (a+b)/2, pas après a : le moteur relève à son propre rythme, et un relevé tombé entre le dernier
+        // rafraîchissement d'avant le gel et le gel prenait la place du premier d'après ; la ligne était oubliée ou posée dans un pas normal (recette du 07/11, 2b).
+        for(const {a,b} of enrTrous){const i=R.findIndex(r=>vu(r)&&r.t>(a+b)/2);let j=i-1;while(j>=0&&!vu(R[j]))j--;if(i<1||j<0||R[i].t-R[j].t<=2*pas||R.slice(j+1,i).some(r=>Array.isArray(r.v)&&!vu(r)))continue;
           const g=(R[j].t+R[i].t)/2;let k=j+1;while(k<i&&R[k].t<=g)k++;R.splice(k,0,{t:g,v:Array(n).fill(null)});}return R;}
       function enrGarder(){if(!enrVu)return;const L=[];let p=null;
         for(const x of enrSuite(enrVu.rows)){if(x.evt!==undefined){L.push([Math.round(x.t*10)/10,String(x.evt)]);continue;}if(!Array.isArray(x.v)||p&&p.t===x.t)continue;p=x;L.push([Math.round(x.t*10)/10,...x.v.map(v=>Number.isFinite(v)?+v.toPrecision(5):null)]);}
